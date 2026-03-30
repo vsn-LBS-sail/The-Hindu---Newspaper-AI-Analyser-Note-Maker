@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- Hero Banner Area -->
+<div class="border-b-4 border-black pb-8 mb-10">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Main Headline -->
+        <div class="lg:col-span-8">
+            <h1 class="text-5xl md:text-6xl font-black font-serif text-black leading-tight tracking-tight hover:text-gray-700 transition-colors mb-4">
+                The Comprehensive UPSC Guide.
+            </h1>
+            <p class="text-xl text-gray-700 font-serif mb-6 leading-relaxed max-w-3xl">
+                Experience the rigorous analysis of The Hindu, instantly distilled for the entirety of the Civil Services Examination. We comprehensively cover every section from the physical paper—spanning both national and international importance—along with deep insights from the Editorial section, stripping the fluff to leave you with exactly what matters to the examiner.
+            </p>
+            <div class="flex gap-4">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('fetch_news') }}" class="inline-flex items-center px-8 py-3 bg-black text-white font-bold text-xs tracking-widest uppercase hover:bg-gray-800 transition-colors">
+                        Read Today's Paper <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('register') }}" class="inline-flex items-center px-8 py-3 bg-black text-white font-bold text-xs tracking-widest uppercase hover:bg-gray-800 transition-colors">
+                        Subscribe Now
+                    </a>
+                    <a href="{{ url_for('login') }}" class="inline-flex items-center px-8 py-3 bg-white text-black border-2 border-black font-bold text-xs tracking-widest uppercase hover:bg-black hover:text-white transition-colors">
+                        Log In
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column: Featured Image -->
+        <div class="lg:col-span-4 relative group cursor-pointer overflow-hidden border border-gray-200">
+            <img class="w-full h-72 object-cover transform group-hover:scale-105 transition-transform duration-700" src="https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&q=80&w=800" alt="Delhi Parliament">
+            <div class="absolute bottom-0 left-0 bg-black text-white px-3 py-1 text-xs font-bold uppercase tracking-widest m-4">
+                Exclusive
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Three Column Layout (Classic Newspaper Grid) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 border-b border-gray-200 pb-12 mb-12">
+    
+    <!-- Feature 1 -->
+    <div class="group cursor-pointer">
+        <div class="border-t border-black pt-4 mb-4">
+            <span class="text-xs font-bold text-amber-600 uppercase tracking-widest">Technology</span>
+        </div>
+        <h3 class="text-2xl font-black font-serif text-black leading-snug mb-3 group-hover:underline decoration-2 underline-offset-4 decoration-amber-500">
+            Instant AI Distillation
+        </h3>
+        <p class="text-gray-600 text-sm leading-relaxed mb-4">
+            Our model reads dense editorials and extracts raw numbers, hard facts, and core arguments, leaving behind precisely what matters to the examiner.
+        </p>
+    </div>
+
+    <!-- Feature 2 -->
+    <div class="group cursor-pointer border-t border-gray-200 md:border-none md:border-l md:pl-8">
+        <div class="border-t border-black pt-4 mb-4">
+            <span class="text-xs font-bold text-amber-600 uppercase tracking-widest">Academics</span>
+        </div>
+        <h3 class="text-2xl font-black font-serif text-black leading-snug mb-3 group-hover:underline decoration-2 underline-offset-4 decoration-amber-500">
+            Precision Syllabus Tagging
+        </h3>
+        <p class="text-gray-600 text-sm leading-relaxed mb-4">
+            Every generated note is automatically evaluated and mapped to specific GS Papers (1-4) covering International Relations, Ethics, and Governance dynamically.
+        </p>
+    </div>
+
+    <!-- Feature 3 -->
+    <div class="group cursor-pointer border-t border-gray-200 md:border-none md:border-l md:pl-8">
+        <div class="border-t border-black pt-4 mb-4">
+            <span class="text-xs font-bold text-amber-600 uppercase tracking-widest">Productivity</span>
+        </div>
+        <h3 class="text-2xl font-black font-serif text-black leading-snug mb-3 group-hover:underline decoration-2 underline-offset-4 decoration-amber-500">
+            Seamless PDF Exporting
+        </h3>
+        <p class="text-gray-600 text-sm leading-relaxed mb-4">
+            Enjoy perfect web typography, then instantly download high-resolution A4 PDFs directly from your browser memory to review offline at any time.
+        </p>
+    </div>
+
+</div>
+
+<!-- Endorsement / Quote Area -->
+<div class="max-w-4xl mx-auto text-center py-12 px-4 border-y-4 border-black bg-gray-50 mb-12">
+    <i class="fa-solid fa-quote-left text-3xl text-gray-300 mb-6"></i>
+    <p class="text-2xl md:text-3xl font-serif italic text-black leading-relaxed">
+        "You have the right to work, but never to the fruit of work."
+    </p>
+    <div class="mt-6 flex justify-center items-center gap-4">
+        <div class="w-12 h-px bg-gray-400"></div>
+        <span class="text-xs font-bold uppercase tracking-widest text-gray-500">The Gita</span>
+        <div class="w-12 h-px bg-gray-400"></div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPSC Hindu AI Analyzer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    
+    <!-- Google Fonts: Inter & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom styling -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .glass-nav {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .btn-primary {
+            background: #111827;
+            color: #ffffff;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background: #374151;
+        }
+        .newsprint-bg {
+            background-color: #ffffff;
+        }
+        /* Emulate The Hindu's specific serif logo text compression */
+        .hindu-logo {
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            transform: scaleY(1.1);
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="newsprint-bg text-[#1f2937] min-h-screen flex flex-col selection:bg-slate-800 selection:text-white">
+
+    <!-- Navigation Bar -->
+    <nav class="glass-nav text-black sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Exact reproduction of The Hindu's masthead structure -->
+                <div class="flex items-center">
+                    <a href="{{ url_for('index') }}" class="flex-shrink-0 flex items-baseline gap-2 group">
+                        <span class="hindu-logo text-3xl text-black uppercase">THE HINDU</span>
+                        <span class="hidden sm:inline-block text-[10px] font-bold text-gray-400 uppercase tracking-widest border-l border-gray-300 pl-3 py-1 ml-1 group-hover:text-amber-600 transition-colors">AI Edition</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-1 sm:space-x-4">
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('fetch_news') }}" class="text-gray-800 hover:text-black px-3 py-2 text-sm font-bold transition duration-150 hover:underline decoration-2 underline-offset-4 decoration-amber-500">Daily News</a>
+                        <a href="{{ url_for('dashboard') }}" class="text-gray-800 hover:text-black px-3 py-2 text-sm font-bold transition duration-150 hover:underline decoration-2 underline-offset-4 decoration-amber-500">My Notes</a>
+                        
+                        <div class="ml-3 relative inline-flex items-center gap-3 border-l border-gray-200 pl-4 h-8">
+                            <span class="text-gray-600 text-sm font-bold uppercase tracking-widest"><i class="fa-regular fa-user mr-1.5 opacity-60"></i>{{ current_user.username }}</span>
+                            <a href="{{ url_for('logout') }}" class="text-gray-400 hover:text-red-600 text-sm font-medium transition duration-150" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
+                        </div>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="text-gray-800 hover:text-black px-3 py-2 text-sm font-bold transition duration-150 hover:underline decoration-2 underline-offset-4 decoration-amber-500">Log in</a>
+                        <a href="{{ url_for('register') }}" class="btn-primary px-5 py-2 font-bold text-xs uppercase tracking-widest rounded-sm ml-2">Subscribe</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% set colors = {'success': 'bg-emerald-50 border-emerald-200 text-emerald-800', 'danger': 'bg-red-50 border-red-200 text-red-800', 'error': 'bg-red-50 border-red-200 text-red-800', 'warning': 'bg-amber-50 border-amber-200 text-amber-800'} %}
+                    {% set badge_colors = {'success': 'bg-emerald-500', 'danger': 'bg-red-500', 'error': 'bg-red-500', 'warning': 'bg-amber-500'} %}
+                    {% set current_color = colors.get(category, 'bg-blue-50 border-blue-200 text-blue-800') %}
+                    {% set badge = badge_colors.get(category, 'bg-blue-500') %}
+                    
+                    <div class="border px-4 py-3 rounded-xl relative {{ current_color }} mb-4 flex items-center shadow-sm" role="alert">
+                        <div class="w-2 h-full absolute left-0 top-0 bottom-0 rounded-l-xl {{ badge }}"></div>
+                        <span class="block sm:inline ml-3 font-medium">{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t-4 border-amber-500 mt-auto text-white">
+        <div class="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center">
+            <span class="hindu-logo text-3xl text-white uppercase mb-2">THE HINDU</span>
+            <p class="text-[10px] font-bold tracking-widest uppercase mb-4 text-gray-400">AI Edition</p>
+            <p class="text-xs font-semibold tracking-wide text-gray-500 border-t border-slate-800 pt-6 w-full max-w-md">
+                &copy; {{ 2026 }} AI-ML Civil Services Preparation Project.
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>
