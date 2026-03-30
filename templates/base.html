@@ -52,12 +52,14 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
-                    <a href="{{ url_for('index') }}" class="flex-shrink-0 flex items-center gap-3 group">
-                        <!-- Opaque native rendering with rounded box for professional integration -->
-                        <img src="{{ url_for('static', filename='images/logo.jpeg') }}" class="h-10 w-auto object-contain rounded-md drop-shadow-sm border border-gray-100 transition-transform group-hover:scale-105" alt="InsightGS Logo">
+                    <a href="{{ url_for('index') }}" class="flex-shrink-0 flex items-center gap-4 group">
+                        <!-- Round, large, visible circular emblem frame with pure alpha transparency source -->
+                        <div class="bg-white rounded-full shadow-md p-1 border border-gray-100 transition-transform group-hover:scale-105">
+                            <img src="{{ url_for('static', filename='images/logo.png') }}" class="h-14 w-14 object-cover rounded-full" alt="InsightGS Logo">
+                        </div>
                         <div class="flex flex-col">
-                            <span class="font-serif text-xl sm:text-2xl font-black text-black tracking-tighter leading-none">InsightGS</span>
-                            <span class="left-0 text-[9px] sm:text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-none mt-1 group-hover:text-amber-600 transition-colors">The Hindu Analyzer</span>
+                            <span class="font-serif text-2xl sm:text-3xl font-black text-black tracking-tighter leading-none">InsightGS</span>
+                            <span class="left-0 text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-widest leading-none mt-1 group-hover:text-amber-600 transition-colors">The Hindu Analyzer</span>
                         </div>
                     </a>
                 </div>
@@ -106,12 +108,12 @@
     <!-- Footer -->
     <footer class="bg-slate-900 border-t-4 border-amber-500 mt-auto text-white">
         <div class="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center">
-            <!-- White pill wrap ensures a harsh JPEG background elegantly marries into the dark footer canvas -->
-            <div class="bg-white p-1 rounded-lg shadow-lg mb-3 hover:scale-105 transition-transform inline-block">
-                <img src="{{ url_for('static', filename='images/logo.jpeg') }}" class="h-10 w-auto object-contain rounded-md" alt="InsightGS Logo">
+            <!-- Large round frame guaranteeing visibility and contrast gracefully against dark footer -->
+            <div class="bg-white rounded-full shadow-lg p-1.5 mb-4 hover:scale-105 transition-transform inline-block">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" class="h-16 w-16 object-cover rounded-full" alt="InsightGS Logo">
             </div>
-            <span class="font-serif font-black text-2xl text-white mb-2 tracking-tighter">InsightGS</span>
-            <p class="text-[10px] font-bold tracking-widest uppercase mb-4 text-gray-400">The Hindu Analyzer</p>
+            <span class="font-serif font-black text-3xl text-white mb-2 tracking-tighter">InsightGS</span>
+            <p class="text-xs font-bold tracking-widest uppercase mb-4 text-gray-400">The Hindu Analyzer</p>
             <p class="text-xs font-semibold tracking-wide text-gray-500 border-t border-slate-800 pt-6 w-full max-w-md">
                 &copy; {{ 2026 }} AI-ML Civil Services Preparation Project.
             </p>
