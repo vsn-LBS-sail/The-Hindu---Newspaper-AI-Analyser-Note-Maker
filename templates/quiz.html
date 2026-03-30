@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-8 pb-12">
+    
+    <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-bold text-gray-900">UPSC Practice Test</h2>
+        <a href="{{ url_for('view_notes', article_id=article.id) }}" class="text-indigo-600 font-medium hover:underline">
+             Back to Notes
+        </a>
+    </div>
+
+    <div class="bg-indigo-50 rounded-xl p-5 border border-indigo-100 mb-6">
+        <p class="text-sm text-indigo-900 font-semibold mb-1">Based on article:</p>
+        <p class="text-lg text-indigo-800">{{ article.title }}</p>
+    </div>
+
+    <!-- Quiz Form -->
+    <form id="quiz-form" class="space-y-8">
+        {% for question in questions %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden" id="qblock-{{ question.id }}">
+            <div class="px-6 py-4 bg-gray-50 border-b border-gray-200 flex space-x-3 items-start">
+               <span class="flex-shrink-0 inline-flex items-center justify-center h-8 w-8 rounded-full bg-indigo-600 text-white font-bold">{{ loop.index }}</span>
+               <h3 class="text-lg font-medium text-gray-900 mt-0.5">{{ question.question }}</h3>
+            </div>
+            
+            <div class="px-6 py-5 space-y-4">
+                {% for option in question.options %}
+                <label class="relative flex items-center p-4 cursor-pointer rounded-lg border border-gray-200 hover:bg-gray-50 transition quiz-option group" 
+                       id="label-{{ question.id }}-{{ loop.index0 }}">
+                    <input type="radio" 
+                           name="q-{{ question.id }}" 
+                           value="{{ loop.index0 }}" 
+                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                    <span class="ml-3 font-medium text-gray-700 block text-sm group-hover:text-gray-900">{{ option }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            
+            <!-- Explanation Block (Hidden initially) -->
+            <div id="explanation-{{ question.id }}" class="hidden px-6 py-4 bg-yellow-50 border-t border-yellow-100 text-sm text-gray-800">
+                <span class="font-bold text-yellow-800">Explanation:</span> {{ question.explanation }}
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="pt-4 pb-12 text-center">
+             <button type="button" onclick="submitQuiz()" id="submit-btn" class="inline-flex items-center px-8 py-3 border border-transparent text-lg font-bold rounded-md shadow text-white bg-indigo-600 hover:bg-indigo-700 transition">
+                Submit Test <i class="fa-solid fa-paper-plane ml-2"></i>
+             </button>
+        </div>
+    </form>
+
+    <!-- Results Modal Overlay -->
+    <div id="results-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 text-center transform transition-all">
+            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-4 shadow" id="score-icon-bg">
+                <i class="fa-solid fa-trophy text-4xl text-green-600" id="score-icon"></i>
+            </div>
+            <h3 class="text-2xl leading-6 font-extrabold text-gray-900 mb-2">Test Complete!</h3>
+            <p class="text-lg text-gray-500 mb-6">You scored <span id="score-text" class="font-bold text-indigo-600">X/Y</span></p>
+            <button onclick="closeModal()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:text-sm">
+                 Review Explanations
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Embed correct answers for client-side validation for instant feedback
+    const quizData = {{ questions | tojson | safe }};
+    const quizId = {{ quiz.id }};
+    
+    async function submitQuiz() {
+        // Collect answers
+        let answers = {};
+        let allAnswered = true;
+        
+        quizData.forEach(q => {
+             const selected = document.querySelector(`input[name="q-${q.id}"]:checked`);
+             if (selected) {
+                 answers[q.id] = parseInt(selected.value);
+             } else {
+                 allAnswered = false;
+             }
+        });
+        
+        if (!allAnswered) {
+             if (!confirm("You haven't answered all questions. Submit anyway?")) {
+                  return;
+             }
+        }
+        
+        // Show correct/incorrect visuals and display explanations
+        let correctCount = 0;
+        quizData.forEach(q => {
+             const userAns = answers[q.id];
+             const correctAns = q.correct;
+             
+             // Disable inputs
+             document.querySelectorAll(`input[name="q-${q.id}"]`).forEach(el => el.disabled = true);
+             
+             // Style correct answer green
+             const correctLabel = document.getElementById(`label-${q.id}-${correctAns}`);
+             if (correctLabel) {
+                 correctLabel.classList.remove('border-gray-200', 'hover:bg-gray-50');
+                 correctLabel.classList.add('bg-green-50', 'border-green-400', 'ring-1', 'ring-green-400');
+                 correctLabel.querySelector('span').classList.add('text-green-800');
+             }
+             
+             // Style wrong answer red if user chose it
+             if (userAns !== undefined && userAns !== correctAns) {
+                 const wrongLabel = document.getElementById(`label-${q.id}-${userAns}`);
+                 if (wrongLabel) {
+                     wrongLabel.classList.remove('border-gray-200', 'hover:bg-gray-50');
+                     wrongLabel.classList.add('bg-red-50', 'border-red-400');
+                     wrongLabel.querySelector('span').classList.add('text-red-800', 'line-through');
+                 }
+             }
+             
+             if (userAns === correctAns) correctCount++;
+             
+             // Show explanation
+             document.getElementById(`explanation-${q.id}`).classList.remove('hidden');
+        });
+        
+        // Disable submit button
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = true;
+        btn.classList.replace('bg-indigo-600', 'bg-gray-400');
+        btn.innerText = 'Test Submitted';
+        
+        // Send to backend via AJAX to save progress
+        try {
+            await fetch('/quiz/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    quiz_id: quizId,
+                    answers: answers
+                })
+            });
+        } catch(e) { console.error("Could not save score", e); }
+        
+        // Configure and Show Modal
+        document.getElementById('score-text').innerText = `${correctCount}/${quizData.length}`;
+        const percentage = (correctCount / quizData.length) * 100;
+        
+        const iconBg = document.getElementById('score-icon-bg');
+        const icon = document.getElementById('score-icon');
+        
+        if (percentage < 50) {
+            iconBg.classList.replace('bg-green-100', 'bg-red-100');
+            icon.classList.replace('text-green-600', 'text-red-600');
+            icon.classList.replace('fa-trophy', 'fa-book-open-reader');
+        }
+        
+        document.getElementById('results-modal').classList.remove('hidden');
+    }
+    
+    function closeModal() {
+        document.getElementById('results-modal').classList.add('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-8">
+    
+    <div class="flex flex-col sm:flex-row justify-end items-start sm:items-center gap-4 mb-2 no-print">
+        <button onclick="downloadPDF()" class="btn-gold px-5 py-2.5 shadow-md rounded-lg text-sm font-bold inline-flex items-center transition-all bg-emerald-600 hover:bg-emerald-700 hover:-translate-y-0.5" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+            <i class="fa-solid fa-file-pdf mr-2"></i> Export PDF
+        </button>
+    </div>
+
+    <!-- The actual PDF content container -->
+    <div id="pdf-wrapper" class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden print:shadow-none print:border-none print:w-full">
+        
+        <!-- Header Section -->
+        <div class="px-8 py-10 border-b border-slate-100 bg-slate-900 relative overflow-hidden">
+            <!-- Render the Real Hindu Image if the AI extracted it! -->
+            {% if notes.image_url %}
+            <div class="absolute inset-0 opacity-20 mix-blend-screen pointer-events-none">
+                <img src="{{ notes.image_url }}" alt="Article Graphic" class="w-full h-full object-cover">
+            </div>
+            {% endif %}
+            
+            <div class="relative z-10">
+                <div class="flex flex-wrap gap-2 mb-6">
+                    {% for gs in notes.gs_papers %}
+                       <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-extrabold bg-amber-500 text-slate-900 tracking-wider">
+                           {{ gs }}
+                       </span>
+                    {% endfor %}
+                </div>
+
+                <h2 class="text-3xl font-bold font-serif text-white leading-tight mb-4">{{ article.title }}</h2>
+                
+                <a href="{{ article.url }}" target="_blank" class="text-sm font-medium text-amber-500 hover:text-white transition-colors no-print">
+                    <i class="fa-solid fa-link mr-1"></i> Read Original Source
+                </a>
+            </div>
+        </div>
+        
+        <div class="p-8 space-y-8">
+            
+            <div class="bg-slate-50 p-6 rounded-xl border border-slate-100 shadow-inner">
+                <h4 class="text-xs font-extrabold text-slate-500 uppercase tracking-widest mb-3 flex items-center">
+                    <i class="fa-solid fa-crosshairs text-amber-500 mr-2"></i> Syllabus Targeting
+                </h4>
+                <ul class="flex flex-wrap gap-2">
+                    {% for topic in notes.topics %}
+                        <li class="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-md shadow-sm">{{ topic }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Markdown rendering zone -->
+            <div id="notes-content" class="prose prose-slate prose-lg max-w-none text-slate-800 leading-relaxed font-serif prose-headings:font-serif prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-amber-600 prose-blockquote:border-l-amber-500 prose-blockquote:bg-slate-50 prose-blockquote:px-6 prose-blockquote:py-2 prose-blockquote:rounded-r-lg prose-ul:marker:text-amber-500">
+            </div>
+
+            <div class="pt-8 mt-8 border-t border-slate-200 no-print flex justify-center gap-4 flex-wrap">
+                {% if article.quiz %}
+                <a href="{{ url_for('take_quiz', article_id=article.id) }}" class="inline-flex items-center px-6 py-3 border border-transparent shadow-md text-sm font-bold rounded-lg text-emerald-900 bg-emerald-100 hover:bg-emerald-200 transition-all hover:-translate-y-0.5">
+                    <i class="fa-solid fa-list-check mr-2"></i> Take The Practice Quiz
+                </a>
+                {% else %}
+                <button onclick="generateItem('quiz', {{ article.id }}, this)" class="inline-flex items-center px-6 py-3 border border-amber-200 shadow-sm text-sm font-bold rounded-lg text-amber-900 bg-amber-50 hover:bg-amber-100 tracking-wide transition-all">
+                    <i class="fa-solid fa-bolt mr-2 text-amber-500"></i> <span class="btn-text">Generate MCQs</span>
+                </button>
+                {% endif %}
+                
+                {% if article.mains %}
+                <a href="{{ url_for('practice_mains', article_id=article.id) }}" class="inline-flex items-center px-6 py-3 border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-sm font-black rounded-none text-white bg-black hover:bg-white hover:text-black transition-all hover:translate-y-1 hover:translate-x-1 hover:shadow-none uppercase tracking-widest">
+                    <i class="fa-solid fa-pen-nib mr-2 text-amber-500"></i> Mains Simulator
+                </a>
+                {% else %}
+                <button onclick="generateItem('mains', {{ article.id }}, this)" class="inline-flex items-center px-6 py-3 border border-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-sm font-bold rounded-none text-slate-800 bg-white hover:bg-slate-50 uppercase tracking-widest transition-all hover:translate-y-0.5 hover:translate-x-0.5 hover:shadow-none">
+                    <i class="fa-solid fa-bolt mr-2 text-amber-500"></i> <span class="btn-text">Generate Mains test</span>
+                </button>
+                {% endif %}
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<!-- html2pdf Client Side Export Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<!-- Markdown Parser -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const rawMarkdown = {{ notes.summary | tojson }};
+        marked.setOptions({ breaks: true, gfm: true });
+        document.getElementById('notes-content').innerHTML = marked.parse(rawMarkdown);
+    });
+
+    // Handle High Quality PDF Generation Instantly in Browser!
+    function downloadPDF() {
+        const element = document.getElementById('pdf-wrapper');
+        const opt = {
+          margin:       [0.5, 0.5, 0.5, 0.5],
+          filename:     'UPSC_Notes_TheHindu.pdf',
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 2, useCORS: true },
+          pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] },
+          jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Inject a temporary print-only class to fix overflow issues
+        element.classList.add('print-mode');
+        html2pdf().set(opt).from(element).save().then(() => {
+            element.classList.remove('print-mode');
+        });
+    }
+
+    // Dynamic AI Generation logic
+    async function generateItem(type, articleId, btnElement) {
+        // UI Loading Spinner
+        btnElement.disabled = true;
+        const icon = btnElement.querySelector('i');
+        const text = btnElement.querySelector('.btn-text');
+        
+        icon.className = 'fa-solid fa-spinner fa-spin mr-2 text-amber-500';
+        text.innerText = 'Consulting AI, Please Wait...';
+        btnElement.classList.add('opacity-75', 'cursor-not-allowed');
+
+        try {
+            const response = await fetch(`/api/generate_${type}/${articleId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+                // Success: Drop them onto the reloaded page which now has the test active!
+                window.location.reload();
+            } else {
+                alert(`Analysis failed: ${result.error}`);
+                btnElement.disabled = false;
+                icon.className = 'fa-solid fa-triangle-exclamation mr-2 text-red-500';
+                text.innerText = 'Failed. Try Again.';
+                btnElement.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('A network error occurred connecting to the Engine.');
+            btnElement.disabled = false;
+        }
+    }
+</script>
+
+<style>
+/* Utilities specifically for making the PDF look perfect */
+@media print {
+    .no-print { display: none !important; }
+    body { background-color: white !important; }
+}
+.print-mode .no-print { display: none !important; }
+</style>
+{% endblock %}

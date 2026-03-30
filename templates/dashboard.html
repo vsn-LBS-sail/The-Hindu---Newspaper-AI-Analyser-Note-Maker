@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-8 flex justify-between items-end border-b border-slate-200 pb-5">
+    <div>
+        <h1 class="text-3xl font-bold font-serif text-slate-900 tracking-tight">Your Knowledge Base</h1>
+        <p class="text-slate-500 mt-2 font-medium">Review your distilled UPSC notes and take quizzes.</p>
+    </div>
+    <a href="{{ url_for('fetch_news') }}" class="inline-flex items-center px-6 py-2 border-2 border-black text-xs uppercase tracking-widest font-black bg-white text-black hover:bg-black hover:text-white transition duration-200 rounded-none shadow-sm">
+        <i class="fa-solid fa-plus mr-1"></i> Analyze New
+    </a>
+</div>
+
+{% if articles %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for article in articles %}
+        <div class="bg-white rounded-none shadow-sm border-2 border-slate-100 hover:border-black transition-all duration-300 overflow-hidden flex flex-col group relative">
+            
+            <div class="p-6 flex-grow">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="inline-flex items-center rounded-md bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
+                        <i class="fa-solid fa-calendar-day mr-1.5 opacity-70"></i> {{ article.created_at.strftime('%d %b %Y') }}
+                    </span>
+                    <!-- GS Papers parsed via string split since it's a comma string -->
+                    {% if article.gs_papers %}
+                        {% for gs in article.gs_papers.split(',')[:2] %}
+                        <span class="inline-flex items-center rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/10">
+                            {{ gs }}
+                        </span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                <h3 class="text-xl font-bold font-serif text-slate-800 leading-snug mb-3 group-hover:text-amber-600 transition-colors">
+                    {{ article.title }}
+                </h3>
+            </div>
+            
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center group-hover:bg-slate-100 transition-colors">
+                <a href="{{ url_for('view_notes', article_id=article.id) }}" class="text-indigo-600 hover:text-indigo-800 font-bold text-sm tracking-wide">
+                    Read Notes <i class="fa-solid fa-arrow-right ml-1 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                </a>
+                
+                {% if article.quiz %}
+                    {% set q_res = quiz_scores.get(article.quiz.id) %}
+                    {% if q_res %}
+                    <span class="inline-flex items-center text-sm font-bold text-slate-600 bg-white px-3 py-1 rounded-full shadow-sm border border-slate-200">
+                        Score: 
+                        <span class="{% if q_res.score >= 3 %}text-emerald-600{% else %}text-amber-600{% endif %} ml-1.5">
+                            {{ q_res.score }}/{{ q_res.total }}
+                        </span>
+                    </span>
+                    {% else %}
+                    <a href="{{ url_for('take_quiz', article_id=article.id) }}" class="inline-flex items-center text-xs font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-3 py-1.5 rounded-lg transition-colors border border-emerald-200">
+                        Take Quiz <i class="fa-solid fa-pen-to-square ml-1.5 opacity-80"></i>
+                    </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-24 bg-white rounded-3xl border border-slate-200 shadow-sm">
+        <div class="text-slate-300 text-6xl mb-4"><i class="fa-solid fa-folder-open"></i></div>
+        <h3 class="mt-2 text-xl font-bold text-slate-900 font-serif">No notes yet</h3>
+        <p class="mt-1 text-sm text-slate-500 font-medium">Get started by analyzing your first article.</p>
+        <div class="mt-8">
+            <a href="{{ url_for('fetch_news') }}" class="inline-flex justify-center py-3 px-8 border-2 border-transparent text-sm font-bold text-white bg-black hover:bg-gray-800 uppercase tracking-widest rounded-none transition duration-150">
+                Fetch Today's News
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 pb-16">
+    
+    <!-- Hero Header -->
+    <div class="border-b-4 border-black pb-8">
+        <a href="{{ url_for('view_notes', article_id=article.id) }}" class="inline-flex items-center text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-black mb-6">
+            <i class="fa-solid fa-arrow-left mr-2"></i> Back to Edition Notes
+        </a>
+        <h1 class="text-4xl md:text-5xl font-black font-serif text-black uppercase tracking-tight leading-none mb-4">
+            Mains Subjective Simulator
+        </h1>
+        <p class="text-xl text-gray-600 font-serif border-l-4 border-gray-300 pl-4 bg-gray-50 py-2">
+            These questions are dynamically generated from the core text of your selected article, mirroring the style of past UPSC Mains questions. Submit your answer below for instant, rigorous AI evaluation against our generated Model Answer.
+        </p>
+    </div>
+
+    <!-- Questions Loop -->
+    <div class="space-y-16">
+        {% for q in questions %}
+        <div class="border border-gray-300 bg-white p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative">
+            
+            <div class="absolute -top-4 -left-4 bg-black text-white w-10 h-10 flex items-center justify-center font-black text-xl border-2 border-white">
+                {{ loop.index }}
+            </div>
+            
+            <h3 class="text-2xl font-black font-serif text-black leading-snug mb-8 pl-4 border-l-4 border-black">
+                Q. {{ q.question }}
+            </h3>
+
+            {% set attempt = past_attempts.get(q.id|string) %}
+            
+            {% if attempt %}
+                <!-- Show Evaluated State -->
+                <div class="bg-gray-50 border border-gray-200 p-6 mb-8">
+                    <h4 class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3"><i class="fa-solid fa-user-pen mr-2"></i>Your Submitted Answer</h4>
+                    <p class="font-serif text-gray-700 whitespace-pre-wrap">{{ attempt.answer }}</p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8 mb-8 border-t-2 border-dashed border-gray-300 pt-8 mt-8">
+                    <!-- AI Feedback -->
+                    <div class="bg-white border-2 border-black p-6 relative">
+                        <div class="absolute top-0 right-0 bg-black text-white px-4 py-2 text-2xl font-black rounded-bl-xl shadow-md border-b-2 border-l-2 border-black">
+                            {{ attempt.score }}<span class="text-sm font-bold text-gray-400">/10</span>
+                        </div>
+                        <h4 class="text-lg font-black uppercase tracking-widest mb-4"><i class="fa-solid fa-robot text-amber-500 mr-2"></i>AI Evaluation</h4>
+                        <div class="prose prose-sm prose-slate font-serif max-w-none prose-headings:font-bold prose-headings:text-black">
+                            {{ attempt.feedback|safe }}
+                        </div>
+                    </div>
+                    
+                    <!-- Model Answer -->
+                    <div class="bg-amber-50 border-2 border-amber-600 p-6">
+                        <h4 class="text-lg font-black uppercase tracking-widest mb-4 text-amber-900"><i class="fa-solid fa-star text-amber-600 mr-2"></i>Model Answer</h4>
+                        <div class="prose prose-sm prose-amber font-serif max-w-none">
+                            {{ q.model_answer|safe }}
+                        </div>
+                    </div>
+                </div>
+                
+            {% else %}
+                <!-- Show Attempt State -->
+                <div id="attempt-zone-{{ q.id }}" class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Write your answer (Aim for 150-250 words)</label>
+                        <textarea id="answer-{{ q.id }}" rows="10" class="w-full border-2 border-gray-300 focus:border-black focus:ring-0 p-4 font-serif text-lg bg-gray-50 resize-y" placeholder="Start writing your argument here..."></textarea>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-gray-100 p-4 border border-gray-200">
+                        <button onclick="evaluateAnswer('{{ mains.id }}', '{{ q.id }}')" class="w-full sm:w-auto px-8 py-3 bg-black text-white font-black text-xs uppercase tracking-widest rounded-none hover:bg-white hover:text-black border-2 border-black transition-colors flex items-center justify-center">
+                            <i class="fa-solid fa-paper-plane mr-2 text-amber-500"></i> Submit for AI Review
+                        </button>
+                        
+                        <button onclick="toggleModelAnswer('{{ q.id }}')" class="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-black underline decoration-dashed underline-offset-4">
+                            Peek at Model Answer
+                        </button>
+                    </div>
+                    
+                    <div id="model-answer-{{ q.id }}" class="hidden mt-6 bg-amber-50 border-2 border-amber-500 p-6 shadow-inner">
+                        <div class="flex items-center justify-between mb-4 border-b border-amber-200 pb-2">
+                            <h4 class="text-lg font-black uppercase tracking-widest text-amber-900"><i class="fa-solid fa-book-open text-amber-600 mr-2"></i>Official Model Answer</h4>
+                            <span class="text-[10px] font-bold uppercase bg-amber-200 px-2 py-1 text-amber-800">Hint Mode</span>
+                        </div>
+                        <div class="prose prose-sm prose-amber font-serif max-w-none">
+                            {{ q.model_answer|safe }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Evaluation Loader Modal -->
+<div id="evalLoading" class="fixed inset-0 bg-white/95 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="border-4 border-black bg-white p-12 max-w-md w-full text-center relative shadow-[16px_16px_0px_0px_rgba(0,0,0,1)]">
+        <i class="fa-solid fa-microscope text-5xl text-black animate-pulse mb-6"></i>
+        <h2 class="text-2xl font-black font-serif text-black uppercase tracking-tight mb-2">Examiner Grading Mode</h2>
+        <p class="text-gray-600 font-serif italic text-sm">Evaluating structure, data utilization, and logical coherence...</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    // Initialize any markdown text
+    document.addEventListener('DOMContentLoaded', () => {
+        marked.setOptions({ breaks: true, gfm: true });
+        // The server renders model answers as HTML if they passed through |safe, but 
+        // if they are raw markdown string literals, we can parse them here securely.
+        // For now, assume Flask rendering took care of safe raw text, but if it looks like markdown, we render it.
+        const proseElements = document.querySelectorAll('.prose');
+        proseElements.forEach(el => {
+             // If you want JS to render the markdown:
+             // el.innerHTML = marked.parse(el.innerHTML);
+        });
+    });
+
+    function toggleModelAnswer(id) {
+        const div = document.getElementById(`model-answer-${id}`);
+        div.classList.toggle('hidden');
+    }
+
+    function evaluateAnswer(mainsId, questionId) {
+        const answerText = document.getElementById(`answer-${questionId}`).value;
+        if (!answerText || answerText.trim().length < 20) {
+            alert("Your answer is too short. Please write a comprehensive response before evaluation.");
+            return;
+        }
+
+        document.getElementById('evalLoading').classList.remove('hidden');
+        document.getElementById('evalLoading').classList.add('flex');
+
+        fetch('/api/evaluate_mains', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                mains_id: mainsId,
+                question_id: questionId,
+                answer: answerText
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                location.reload(); // Reload to show the compiled evaluations from jinja
+            } else {
+                alert("Evaluation Failed: " + data.error);
+                document.getElementById('evalLoading').classList.add('hidden');
+                document.getElementById('evalLoading').classList.remove('flex');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Network error occurred.");
+            document.getElementById('evalLoading').classList.add('hidden');
+            document.getElementById('evalLoading').classList.remove('flex');
+        });
+    }
+</script>
+{% endblock %}

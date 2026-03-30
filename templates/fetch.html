@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+    
+    <!-- Rich Hero Extraction Area -->
+    <div class="bg-white border-b-4 border-black pb-12 shadow-sm relative overflow-hidden">
+        <div class="absolute right-0 top-0 opacity-5 pointer-events-none transform -translate-y-12 translate-x-12">
+            <i class="fa-solid fa-landmark text-[24rem]"></i>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10 pt-8 px-4 sm:px-8">
+            
+            <div class="lg:col-span-7">
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="bg-black text-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)]">Archive Gateway</span>
+                    <span class="text-gray-500 text-sm font-serif italic border-l border-gray-300 pl-3">{{ date }} Edition</span>
+                </div>
+                
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black font-serif text-black uppercase tracking-tight leading-none mb-6 drop-shadow-sm">
+                    Fetch Official <br> <span class="bg-black text-white px-2 mt-2 inline-block">UPSC Intelligence.</span>
+                </h1>
+                
+                <p class="text-lg text-gray-700 font-serif leading-relaxed mb-8 border-l-4 border-gray-300 pl-5 max-w-2xl bg-gradient-to-r from-gray-50 to-transparent py-2">
+                    Access today's physical print edition. The AI serves as a comprehensive guide for the entire UPSC syllabus, covering every critical dispatch of both national and international importance, while extracting profound views directly from the <span class="font-bold text-red-700 border-b border-red-700">Editorial</span> section.
+                </p>
+                
+                <form action="{{ url_for('fetch_news') }}" method="POST" class="bg-white border-2 border-gray-200 p-6 flex flex-col sm:flex-row gap-4 w-full shadow-[4px_4px_0px_0px_rgba(229,231,235,1)]">
+                    <div class="flex-grow">
+                        <label for="date" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2"><i class="fa-regular fa-calendar mr-1"></i> Edition Date</label>
+                        <input type="date" name="date" required value="{{ date }}" class="shadow-inner border-2 focus:ring-0 focus:border-amber-500 block w-full border-gray-300 bg-gray-50 text-black px-4 py-3 font-serif text-lg transition-colors rounded-none outline-none">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full sm:w-auto h-[54px] inline-flex items-center justify-center px-8 border-2 border-black text-xs font-black text-white bg-black hover:bg-white hover:text-black uppercase tracking-widest rounded-none transition-all duration-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:shadow-none hover:translate-x-1 hover:translate-y-1">
+                            <i class="fa-solid fa-cloud-arrow-down mr-2 text-amber-500"></i> Fetch Print
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Contextual Imagery for Visual Density -->
+            <div class="lg:col-span-5 hidden lg:block relative h-[450px] w-full group">
+                <!-- Drop shadow block -->
+                <div class="absolute inset-0 border-2 border-black bg-gray-100 transform translate-x-6 translate-y-6 transition-transform group-hover:translate-x-4 group-hover:translate-y-4"></div>
+                <!-- Main image -->
+                <img src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&q=80&w=1000" alt="News Archive" class="absolute inset-0 w-full h-full object-cover border-2 border-black grayscale contrast-125 group-hover:grayscale-0 transition-all duration-700 z-10 shadow-sm">
+                <!-- Ornament -->
+                <div class="absolute -top-4 -left-4 bg-white border-2 border-black p-3 z-20 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    <i class="fa-solid fa-dharmachakra text-black text-2xl animate-[spin_10s_linear_infinite]"></i>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Results Grid -->
+    {% if articles %}
+    <div class="pt-4 pb-16">
+        <div class="flex justify-between items-end border-b-4 border-black pb-4 mb-8">
+            <h3 class="text-3xl lg:text-4xl font-black text-black font-serif uppercase tracking-tight flex items-center gap-3">
+                <i class="fa-solid fa-newspaper text-gray-300"></i> Edition Top Stories
+            </h3>
+            <span class="text-xs text-gray-500 font-bold uppercase tracking-widest bg-gray-100 px-3 py-1 border border-gray-200">Found {{ articles|length }} Articles</span>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for article in articles %}
+            <article class="flex flex-col border border-gray-200 bg-white hover:border-black transition-colors duration-300 group shadow-sm hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1">
+                
+                <div class="p-6 flex-grow border-b border-gray-100 relative">
+                    <!-- Section Tag -->
+                    <div class="mb-4 flex items-center justify-between">
+                        {% if article.category == 'Editorial' %}
+                        <span class="inline-flex items-center text-[10px] font-black text-red-700 tracking-widest uppercase bg-red-50 px-2 py-1 border border-red-200">
+                            <i class="fa-solid fa-pen-nib mr-1.5 opacity-80"></i> Editorial
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center text-[10px] font-bold text-gray-600 tracking-widest uppercase bg-gray-100 px-2 py-1 border border-gray-200">
+                            {{ article.category }}
+                        </span>
+                        {% endif %}
+                        <a href="{{ article.url }}" target="_blank" class="text-gray-300 hover:text-amber-500 transition-colors" title="Read Original Source"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                    </div>
+                    
+                    <!-- Headline -->
+                    <h4 class="text-2xl font-black font-serif text-black leading-snug group-hover:underline decoration-2 underline-offset-4 decoration-black">
+                        {{ article.title }}
+                    </h4>
+                </div>
+                
+                <!-- Action Bar -->
+                <div class="bg-gray-50 p-4 shrink-0 flex justify-end">
+                    <button onclick="analyzeArticle('{{ article.url }}', '{{ article.title|replace('\'', '\\\'') }}')" class="inline-flex items-center px-5 py-2 border-2 border-black text-[10px] font-black uppercase tracking-widest bg-white text-black hover:bg-black hover:text-white transition duration-200 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5">
+                        <i class="fa-solid fa-bolt text-amber-500 mr-2"></i> Analyze
+                    </button>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Interactive Semantic Loading Modal -->
+<div id="loadingModal" class="fixed inset-0 bg-white/95 backdrop-blur-sm hidden items-center justify-center z-50 transition-opacity print:hidden">
+    <div class="border-4 border-black bg-white p-12 max-w-3xl w-full mx-4 relative shadow-[16px_16px_0px_0px_rgba(0,0,0,1)]">
+        
+        <div class="absolute top-0 left-0 w-full h-2 bg-gray-100 overflow-hidden">
+             <div class="h-full bg-black w-1/3 animate-[translateX_2s_ease-in-out_infinite]"></div>
+        </div>
+        
+        <div class="flex items-center justify-center mb-8 gap-4">
+            <i class="fa-solid fa-brain text-black text-4xl animate-pulse"></i>
+            <h2 class="text-3xl font-black font-serif text-black uppercase tracking-tight" id="loadingTitle">AI Synthesis Active</h2>
+        </div>
+        
+        <div class="border-y-2 border-gray-200 py-8 text-center min-h-[200px] flex flex-col justify-center relative">
+            <i class="fa-solid fa-quote-left text-4xl text-gray-200 absolute top-4 left-4"></i>
+            <p id="inspirationQuote" class="text-3xl text-gray-800 font-serif italic leading-relaxed transition-opacity duration-300 ease-in-out px-12">
+                Loading profound wisdom...
+            </p>
+            <i class="fa-solid fa-quote-right text-4xl text-gray-200 absolute bottom-4 right-4"></i>
+        </div>
+        
+        <div class="text-center mt-8">
+            <p class="text-gray-500 text-xs font-bold tracking-widest uppercase"><i class="fa-solid fa-circle-notch fa-spin text-amber-500 mr-2"></i> Extracting Facts, Aligning GS Points & Building Tests</p>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes translateX {
+    0% { transform: translateX(-100%); }
+    50% { transform: translateX(100%); }
+    100% { transform: translateX(300%); }
+}
+</style>
+
+<script>
+    const profoundQuotes = [
+        "You have the right to work, but never to the fruit of work.",
+        "The mind acts like an enemy for those who do not control it.",
+        "Set your heart upon your work, but never on its reward.",
+        "Do not dwell in the past, do not dream of the future, concentrate the mind on the present moment.",
+        "He who is contented is truly rich.",
+        "There is nothing outside of yourself that can ever enable you to get better, stronger, richer, quicker, or smarter. Everything is within.",
+        "Difficulties strengthen the mind, as labor does the body.",
+        "It is not death that a man should fear, but he should fear never beginning to live."
+    ];
+
+    let lastQuoteIndex = -1;
+
+    function showLoading() {
+        const modal = document.getElementById('loadingModal');
+        const quoteEl = document.getElementById('inspirationQuote');
+        
+        let nextIndex = Math.floor(Math.random() * profoundQuotes.length);
+        while(nextIndex === lastQuoteIndex && profoundQuotes.length > 1) {
+             nextIndex = Math.floor(Math.random() * profoundQuotes.length);
+        }
+        lastQuoteIndex = nextIndex;
+        
+        quoteEl.innerHTML = profoundQuotes[nextIndex];
+        quoteEl.style.opacity = 1;
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function hideLoading() {
+        const modal = document.getElementById('loadingModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    function analyzeArticle(url, title) {
+        showLoading();
+        
+        fetch('{{ url_for("analyze_article") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url: url, title: title })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = `/notes/${data.article_id}`;
+            } else {
+                hideLoading();
+                alert('Analysis failed: ' + data.error);
+            }
+        })
+        .catch((error) => {
+            hideLoading();
+            console.error('Error:', error);
+            alert('An unexpected error occurred.');
+        });
+    }
+</script>
+{% endblock %}
